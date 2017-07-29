@@ -11,37 +11,40 @@ use ShareCloth\Look\Api\Response\JsonResponseFactory;
 class Client implements ClientInterface
 {
 
+    const METHOD_POST = 'POST';
+    const METHOD_GET = 'GET';
+
     /** @var  \GuzzleHttp\Client */
     protected $httpClient;
 
     /** @var  string */
-    protected $apiSecret;
+    protected $apiKey;
 
     /** @var  string */
     protected $client;
 
     /** @var string */
-    protected $baseUri = 'http://api.sharecloth.com/v1/';
+    protected $baseUri = 'http://saia.3dlook.me/api/v1/';
 
     /** @var  integer */
     protected $timeout = 300;
 
     /**
      * Client constructor.
-     * @param $apiSecret
+     * @param $apiKey
      * @param array $httpClientConfig
      *
      */
-    public function __construct($apiSecret, $httpClientConfig = [])
+    public function __construct($apiKey, $httpClientConfig = [])
     {
         $this->initHttpClient($httpClientConfig);
-        $this->apiSecret = $apiSecret;
+        $this->apiKey = $apiKey;
     }
 
 
-    public function getApiSecret()
+    public function getApiKey()
     {
-        return $this->apiSecret;
+        return $this->apiKey;
     }
 
     /**
@@ -49,9 +52,42 @@ class Client implements ClientInterface
      * @return ApiResponse
      * @throws BadResponseException
      */
-    public function itemsList($options)
+    public function personCustomBody($options)
     {
-        return $this->runApiMethod('items/list', $options);
+        return $this->runApiMethod('person/custom-body-3db2b', $options, self::METHOD_POST);
+    }
+
+    /**
+     * @param $pathToFile
+     * @return mixed
+     */
+    public function uploads($pathToFile)
+    {
+        return $this->runApiMethod('uploads/', [], self::METHOD_POST, [
+            [
+                'name' => 'image',
+                'contents' => fopen($pathToFile, 'r')
+            ]
+        ]);
+    }
+
+
+    /**
+     * @param $options
+     * @return mixed
+     */
+    public function step($options)
+    {
+        return $this->runApiMethod('step/', $options, self::METHOD_POST);
+    }
+
+    /**
+     * @param $options
+     * @return mixed
+     */
+    public function complete($options)
+    {
+        return $this->runApiMethod('step/', $options, self::METHOD_POST);
     }
 
     /**
@@ -146,33 +182,43 @@ class Client implements ClientInterface
 
     /**
      * Basic method for all api calls
-     * @param $method
-     * @param array $options
+     * @param $uri
+     * @param array $formParams
+     * @param string $method
+     * @param array $multipart
      * @return mixed
-     * @throws BadResponseException
      */
-    protected function runApiMethod($method, $options = [])
+    protected function runApiMethod($uri, $formParams = [], $method = self::METHOD_GET, $multipart = [])
     {
-        $response = $this->makeRequest($method, $options);
+        $response = $this->makeRequest($uri, $formParams, $method, $multipart);
         return $response->getData();
     }
 
 
-
     /**
      * @param $uri
-     * @param $options
+     * @param $formParams
      * @param string $method
+     * @param array $multipart
      * @return ApiResponse
      * @throws BadResponseException
      */
-    protected function makeRequest($uri, $options, $method = 'POST')
+    protected function makeRequest($uri, $formParams, $method = 'POST', $multipart = [])
     {
-        if ($this->apiSecret) {
-            $options = array_merge($options, ['api_secret' => $this->apiSecret]);
+        $options = [
+            'form_params' => $formParams,
+            'headers' => [
+                'Authorization' => 'APIKey ' . $this->apiKey
+            ]
+        ];
+
+        if ($multipart) {
+            unset($options['form_params']);
+            $options['multipart'] = $multipart;
         }
 
-        $response = $this->httpClient->request($method, $uri, ['form_params' => $options]);
+        $response = $this->httpClient->request($method, $uri, $options);
+
         if ($response->getStatusCode() == 200) {
             $parsed =  $this->parseResponse($response);
             if (! $parsed->isResponseSuccess() ) {

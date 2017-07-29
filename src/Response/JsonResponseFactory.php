@@ -17,8 +17,8 @@ class JsonResponseFactory extends AbstractResponseFactory
         $data = json_decode($data, true);
 
         $apiResponse = new ApiResponse();
-        $apiResponse->setStatus($data['status']);
-        $apiResponse->setData($data['data']);
+        $apiResponse->setStatus(ApiResponse::STATUS_SUCCESS);
+        $apiResponse->setData($data);
 
         return $apiResponse;
     }

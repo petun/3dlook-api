@@ -11,11 +11,11 @@ namespace ShareCloth\Look\Api;
 
 interface ClientInterface
 {
-    public function __construct($apiSecret, $httpClientConfig = []);
+    public function __construct($apiKey, $httpClientConfig = []);
 
-    public function getApiSecret();
+    public function getApiKey();
 
-    public function itemsList($options);
+    public function personCustomBody($options);
 
     public function avatarList($options = []);
 
