@@ -17,6 +17,4 @@ interface ClientInterface
 
     public function personCustomBody($options);
 
-    public function avatarList($options = []);
-
 }

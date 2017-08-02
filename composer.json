@@ -1,5 +1,5 @@
 {
-  "name": "petun/3dlook-api-client",
+  "name": "sharecloth/3dlook-api-client",
   "description": "3DLook Api Client",
   "autoload": {
     "psr-4": {
